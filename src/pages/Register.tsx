@@ -1,16 +1,14 @@
-// src/pages/Login.tsx
+// src/pages/Register.tsx
 import { useState } from "react";
 import type { SyntheticEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth";
 import api from "../services/api";
 
 import heroImage from "../assets/hero.webp"; 
 
-export const Login = () => {
-  const { login } = useAuth();
+export const Register = () => {
   const navigate = useNavigate();
-  
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -22,11 +20,15 @@ export const Login = () => {
     setError(null);
 
     try {
-      const response = await api.post("/auth/login", { email, password });
-      login(response.data.token, response.data.user);
-      navigate("/");
+      await api.post("/auth/register", {
+        email,
+        password,
+      });
+
+      alert("Registration successful! Please sign in with your credentials.");
+      navigate("/login");
     } catch (err: any) {
-      setError(err.response?.data?.error || "Invalid credentials. Please try again.");
+      setError(err.response?.data?.error || "Registration failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -40,11 +42,11 @@ export const Login = () => {
           
           <div>
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-white">
-              Dimension <span className="text-[#97ce4c]">C-137</span>
+              Join the <span className="text-[#97ce4c]">Citadel</span>
             </h1>
             <p className="mt-3 text-[15px] text-gray-400 leading-relaxed">
-              A brand new day in the multiverse. <br className="hidden sm:block" />
-              Sign in and get back to your adventures.
+              Get your portal gun. <br className="hidden sm:block" />
+              Register to sync and explore multiverse data.
             </p>
           </div>
 
@@ -57,7 +59,7 @@ export const Login = () => {
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
               <label htmlFor="email" className="text-sm font-medium text-gray-300">
-                Email
+                Email Address
               </label>
               <input
                 id="email"
@@ -90,7 +92,7 @@ export const Login = () => {
               disabled={loading}
               className="mt-2 w-full rounded-xl bg-[#97ce4c] py-4 text-base font-bold text-[#13151A] transition-all duration-300 hover:bg-[#86b843] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {loading ? "Opening Portal..." : "Sign in"}
+              {loading ? "Fabricating clone..." : "Create Account"}
             </button>
           </form>
 
@@ -101,13 +103,12 @@ export const Login = () => {
           </div>
 
           <p className="text-center text-sm text-gray-400">
-            Don't you have an account?{" "}
-            <Link to="/register" className="font-semibold text-white hover:text-[#97ce4c] transition-colors">
-              Sign up
+            Already have a portal gun?{" "}
+            <Link to="/login" className="font-semibold text-white hover:text-[#97ce4c] transition-colors">
+              Sign In here
             </Link>
           </p>
         </div>
-
       </div>
 
       <div className="hidden lg:block lg:w-1/2 p-6">
@@ -115,7 +116,7 @@ export const Login = () => {
           <img 
             src={heroImage} 
             alt="Rick and Morty Dimension" 
-            className="h-full object-cover opacity-90 transition-transform duration-1000 hover:scale-105"
+            className="h-full w-full object-cover opacity-90 transition-transform duration-1000 hover:scale-105"
           />
           <div className="absolute inset-0 bg-linear-to-tr from-[#13151A]/80 via-transparent to-transparent"></div>
           <div className="absolute inset-0 ring-1 ring-inset ring-white/10 rounded-4xl"></div>
