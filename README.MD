@@ -9,6 +9,7 @@ El proyecto está diseñado para ejecutarse como un ecosistema unificado mediant
 ## Tabla de contenidos
 
 - [Descripción general](#descripción-general)
+- [Vista previa](#Vista-previa)
 - [Arquitectura del monorepo](#arquitectura-del-monorepo)
 - [Stack tecnológico](#stack-tecnológico)
 - [Estructura del proyecto](#estructura-del-proyecto)
@@ -42,6 +43,58 @@ El backend proporciona autenticación mediante JWT, validación de solicitudes c
 El frontend consume la API mediante Axios y proporciona las vistas y flujos de autenticación y consulta de personajes.
 
 ---
+
+# Vista previa
+
+## Aplicación web
+
+La aplicación frontend está desplegada en Vercel y puede ser consultada directamente desde el siguiente enlace:
+
+** Aplicación:**  
+https://pedbox-front.vercel.app
+
+Puedes ingresar con las siguientes credenciales
+
+```
+Email: test@test.com 
+Password: 123456
+```
+La aplicación permite interactuar con las funcionalidades principales del sistema, incluyendo autenticación, registro, navegación protegida, consulta de personajes y visualización de información detallada.
+
+## Documentación de la API
+
+La API REST cuenta con documentación interactiva mediante Swagger/OpenAPI:
+
+**Swagger / OpenAPI:**  
+https://lawn-lawsuit-publish-later.trycloudflare.com/api/docs
+
+Desde esta interfaz es posible consultar los endpoints disponibles, revisar sus parámetros y esquemas, y realizar solicitudes directamente contra la API.
+
+## Arquitectura desplegada
+
+```text
+                         ┌─────────────────────────┐
+                         │       Frontend          │
+                         │     React + Vite        │
+                         │       Vercel            │
+                         └────────────┬────────────┘
+                                      │
+                                      │ HTTP / REST
+                                      ▼
+                         ┌─────────────────────────┐
+                         │       Backend API       │
+                         │ Express + TypeScript    │
+                         │   Swagger / JWT / Zod   │
+                         └────────────┬────────────┘
+                                      │
+                                      │ Prisma
+                                      ▼
+                         ┌─────────────────────────┐
+                         │      PostgreSQL         │
+                         └─────────────────────────┘
+```
+
+> **Nota:** La URL de Swagger utiliza un túnel temporal de Cloudflare. Por lo tanto, su disponibilidad depende de que el túnel se encuentre activo.
 
 ## Arquitectura del monorepo
 
