@@ -4,7 +4,7 @@ import type { SyntheticEvent } from "react";
 import { Link } from "react-router-dom";
 import api from "../services/api";
 import type { Character, Pagination, CharacterFilters } from "../types";
-import { Search, ChevronLeft, ChevronRight, SlidersHorizontal, X, MapPin } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, SlidersHorizontal, X, MapPin, ArrowRight } from "lucide-react";
 
 export const CharacterList = () => {
   const [characters, setCharacters] = useState<Character[]>([]);
@@ -14,6 +14,7 @@ export const CharacterList = () => {
   const [showFilters, setShowFilters] = useState(false);
 
   const [page, setPage] = useState(1);
+  const [jumpPageInput, setJumpPageInput] = useState("");
   const [filters, setFilters] = useState<CharacterFilters>({
     name: "",
     status: "",
@@ -30,7 +31,7 @@ export const CharacterList = () => {
       const response = await api.get("/characters", {
         params: {
           page,
-          limit: 10,
+          limit: 12,
           ...filters,
         },
       });
@@ -70,8 +71,48 @@ export const CharacterList = () => {
     setPage(1);
   };
 
+  // Direct Page Jump Handler
+  const handleJumpToPage = (e: SyntheticEvent) => {
+    e.preventDefault();
+    if (!pagination) return;
+
+    const targetPage = parseInt(jumpPageInput, 10);
+    if (!isNaN(targetPage) && targetPage >= 1 && targetPage <= pagination.totalPages) {
+      setPage(targetPage);
+      setJumpPageInput("");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
   const hasActiveFilters = Boolean(filters.status || filters.gender || filters.species);
   const isSearchActive = Boolean(filters.name || hasActiveFilters);
+
+  const getPageNumbers = (currentPage: number, totalPages: number) => {
+    const delta = 1;
+    const range = [];
+    const rangeWithDots = [];
+    let l;
+
+    for (let i = 1; i <= totalPages; i++) {
+      if (i === 1 || i === totalPages || (i >= currentPage - delta && i <= currentPage + delta)) {
+        range.push(i);
+      }
+    }
+
+    for (let i of range) {
+      if (l) {
+        if (i - l === 2) {
+          rangeWithDots.push(l + 1);
+        } else if (i - l !== 1) {
+          rangeWithDots.push("...");
+        }
+      }
+      rangeWithDots.push(i);
+      l = i;
+    }
+
+    return rangeWithDots;
+  };
 
   return (
     <div className="space-y-8 pb-12 font-sans selection:bg-[#97ce4c] selection:text-black">
@@ -164,7 +205,7 @@ export const CharacterList = () => {
                 value={filters.species}
                 onChange={(e) => handleFilterChange("species", e.target.value)}
                 placeholder="e.g. Human, Alien"
-                className="w-full rounded-lg border border-[#2D323E] bg-[#13151A] px-3 py-2.5 text-sm placeholder-gray-600 outline-none focus:ring-1 focus:ring-[#97ce4c]"
+                className="w-full rounded-lg border border-[#2D323E] bg-[#13151A] px-3 py-2.5 text-sm text-white outline-none focus:ring-1 focus:ring-[#97ce4c]"
               />
             </div>
 
@@ -184,7 +225,6 @@ export const CharacterList = () => {
         )}
       </div>
 
-      {/* Error State */}
       {error && (
         <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-5 text-center">
           <p className="text-sm font-medium text-red-400">{error}</p>
@@ -193,7 +233,7 @@ export const CharacterList = () => {
 
       {loading ? (
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          {[...Array(8)].map((_, i) => (
+          {[...Array(12)].map((_, i) => (
             <div key={i} className="flex flex-row overflow-hidden rounded-2xl border border-[#2D323E] bg-[#1C1F26] sm:flex-col animate-pulse">
               <div className="h-28 w-28 shrink-0 bg-[#2D323E] sm:h-56 sm:w-full"></div>
               <div className="flex flex-1 flex-col justify-center p-4 space-y-3">
@@ -238,7 +278,7 @@ export const CharacterList = () => {
                     className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
                     loading="lazy"
                   />
-                  <div className="absolute inset-0 bg-linear-to-t from-[#1C1F26] via-transparent to-transparent opacity-90 sm:hidden"></div>
+                  <div className="absolute inset-0 bg-linear-to-trom-[#1C1F26] via-transparent to-transparent opacity-90 sm:hidden"></div>
                 </div>
 
                 <div className="flex flex-1 flex-col justify-center p-4 sm:p-5 relative">
@@ -276,22 +316,68 @@ export const CharacterList = () => {
           </div>
 
           {pagination && pagination.totalPages > 1 && (
-            <div className="mt-10 flex items-center justify-between rounded-xl border border-[#2D323E] bg-[#1C1F26] p-2 shadow-lg">
+            <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-between rounded-xl border border-[#2D323E] bg-[#1C1F26] p-3 shadow-lg">
+              
               <button
                 disabled={page === 1}
                 onClick={() => {
                   setPage((p) => p - 1);
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
-                className="flex items-center rounded-lg px-4 py-2 text-sm font-semibold text-gray-400 transition-colors hover:bg-[#2D323E] hover:text-white disabled:pointer-events-none disabled:opacity-30"
+                className="flex items-center rounded-lg px-3 py-2 text-sm font-semibold text-gray-400 transition-colors hover:bg-[#2D323E] hover:text-white disabled:pointer-events-none disabled:opacity-30 sm:px-4"
               >
                 <ChevronLeft size={18} className="mr-1" /> <span className="hidden sm:inline">Prev</span>
               </button>
               
-              <div className="flex items-center px-4">
-                <span className="text-sm font-medium text-gray-500">
-                  Page <span className="text-white font-bold mx-1">{pagination.page}</span> of {pagination.totalPages}
-                </span>
+              <div className="hidden sm:flex items-center space-x-1">
+                {getPageNumbers(page, pagination.totalPages).map((p, idx) => (
+                  p === "..." ? (
+                    <span key={idx} className="px-2 py-2 text-gray-500 tracking-widest">...</span>
+                  ) : (
+                    <button
+                      key={idx}
+                      onClick={() => {
+                        setPage(p as number);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      className={`min-w-9 rounded-lg px-3 py-2 text-sm font-bold transition-all ${
+                        page === p 
+                          ? "bg-[#97ce4c] text-[#13151A] shadow-[0_0_10px_rgba(151,206,76,0.3)]" 
+                          : "text-gray-400 hover:bg-[#2D323E] hover:text-white"
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  )
+                ))}
+              </div>
+
+              <div className="flex items-center space-x-3">
+                <form onSubmit={handleJumpToPage} className="flex items-center space-x-1.5">
+                  <span className="text-xs text-gray-500 hidden md:inline">Go to:</span>
+                  <input
+                    type="number"
+                    min={1}
+                    max={pagination.totalPages}
+                    placeholder={`${page}`}
+                    value={jumpPageInput}
+                    onChange={(e) => setJumpPageInput(e.target.value)}
+                    className="w-12 rounded-lg border border-[#2D323E] bg-[#13151A] py-1.5 text-center text-xs text-white outline-none [appearance:textfield]"
+                  />
+                  <button
+                    type="submit"
+                    className="rounded-lg bg-[#2D323E] p-1.5 text-gray-300 transition-colors hover:bg-[#97ce4c] hover:text-[#13151A]"
+                    title="Jump to page"
+                  >
+                    <ArrowRight size={14} />
+                  </button>
+                </form>
+
+                <div className="flex sm:hidden items-center">
+                  <span className="text-xs font-medium text-gray-500">
+                    <span className="text-white font-bold">{pagination.page}</span> / {pagination.totalPages}
+                  </span>
+                </div>
               </div>
               
               <button
@@ -300,10 +386,11 @@ export const CharacterList = () => {
                   setPage((p) => p + 1);
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
-                className="flex items-center rounded-lg px-4 py-2 text-sm font-semibold text-gray-400 transition-colors hover:bg-[#2D323E] hover:text-white disabled:pointer-events-none disabled:opacity-30"
+                className="flex items-center rounded-lg px-3 py-2 text-sm font-semibold text-gray-400 transition-colors hover:bg-[#2D323E] hover:text-white disabled:pointer-events-none disabled:opacity-30 sm:px-4"
               >
                 <span className="hidden sm:inline">Next</span> <ChevronRight size={18} className="ml-1" />
               </button>
+
             </div>
           )}
         </>
