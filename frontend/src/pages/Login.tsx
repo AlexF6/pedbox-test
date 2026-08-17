@@ -81,7 +81,7 @@ export const Login = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full rounded-xl border border-[#2D323E] bg-[#1C1F26] px-4 py-3.5 text-white outline-none transition-all duration-300 focus:ring-1 focus:ring-[#97ce4c]"
-                placeholder="At least 8 characters"
+                placeholder="At least 6 characters"
               />
             </div>
 
