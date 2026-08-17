@@ -13,6 +13,7 @@ export const Register = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const handleSubmit = async (e: SyntheticEvent) => {
     e.preventDefault();
@@ -25,8 +26,7 @@ export const Register = () => {
         password,
       });
 
-      alert("Registration successful! Please sign in with your credentials.");
-      navigate("/login");
+      setShowSuccessModal(true);
     } catch (err: any) {
       setError(err.response?.data?.error || "Registration failed. Please try again.");
     } finally {
@@ -34,8 +34,13 @@ export const Register = () => {
     }
   };
 
+  const handleModalClose = () => {
+    setShowSuccessModal(false);
+    navigate("/login");
+  };
+
   return (
-    <div className="flex h-screen py-12 xl:px-20 overflow-hidden w-full bg-[#13151A] font-sans text-white selection:bg-[#97ce4c] selection:text-black">
+    <div className="flex h-screen py-12 xl:px-20 overflow-hidden w-full bg-[#13151A] font-sans text-white selection:bg-[#97ce4c] selection:text-black relative">
       
       <div className="flex w-full flex-col justify-center px-8 py-12 lg:w-1/2 lg:px-20 xl:px-32 relative">
         <div className="w-full max-w-md mx-auto space-y-8">
@@ -122,6 +127,32 @@ export const Register = () => {
           <div className="absolute inset-0 ring-1 ring-inset ring-white/10 rounded-4xl"></div>
         </div>
       </div>
+
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fadeIn">
+          <div className="w-full max-w-sm rounded-2xl border border-[#2D323E] bg-[#1C1F26] p-6 shadow-2xl space-y-6 text-center transform transition-all scale-100">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#97ce4c]/10 border border-[#97ce4c]/30 text-[#97ce4c]">
+              <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+              </svg>
+            </div>
+
+            <div className="space-y-2">
+              <h3 className="text-xl font-bold text-white">Registration Successful</h3>
+              <p className="text-sm text-gray-400 leading-relaxed">
+                Your credentials have been recorded in the Citadel database. Please sign in to activate your session.
+              </p>
+            </div>
+
+            <button
+              onClick={handleModalClose}
+              className="w-full rounded-xl bg-[#97ce4c] py-3 text-sm font-bold text-[#13151A] transition-all duration-300 hover:bg-[#86b843] active:scale-[0.98]"
+            >
+              Proceed to Sign In
+            </button>
+          </div>
+        </div>
+      )}
 
     </div>
   );

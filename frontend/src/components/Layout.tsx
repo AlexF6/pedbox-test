@@ -53,14 +53,14 @@ export const Layout = () => {
               <span className="text-sm font-medium text-gray-300">{user?.email}</span>
             </div>
             
-            <button
+            {/* <button
               onClick={handleSync}
               disabled={syncing}
               className="flex items-center rounded-xl bg-[#97ce4c] px-4 py-2 text-sm font-bold text-[#13151A] transition-all hover:bg-[#86b843] hover:shadow-[0_0_15px_rgba(151,206,76,0.2)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <RefreshCw size={16} className={`mr-2 ${syncing ? "animate-spin" : ""}`} />
               {syncing ? "Syncing..." : "Sync Data"}
-            </button>
+            </button> */}
             
             <button
               onClick={handleLogout}
