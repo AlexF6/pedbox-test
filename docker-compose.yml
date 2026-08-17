@@ -1,75 +1,88 @@
+x-security: &security_hardening
+  read_only: true
+  cap_drop: ["ALL"]
+  security_opt: ["no-new-privileges:true"]
+  pids_limit: 256
+  ulimits:
+    nproc: 512
+    nofile:
+      soft: 4096
+      hard: 8192
+
+x-logging: &logging_rotated
+  logging:
+    driver: "json-file"
+    options:
+      max-size: "10m"
+      max-file: "5"
+
+networks:
+  backend:
+
+volumes:
+  postgres_data:
+
 services:
-  postgres:
-    image: postgres:16
+  db:
+    image: postgres:16-alpine
     container_name: pedbox-postgres
+    <<: [ *logging_rotated ]
     restart: unless-stopped
+    networks: [ backend ]
+    cpus: "1.00"
+    mem_limit: "768m"
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
-    ports:
-      - "5432:5432"
+      PGDATA: /var/lib/postgresql/data
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data:rw
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-      interval: 5s
+      interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 15s
 
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     container_name: pedbox-backend
+    <<: [ *security_hardening, *logging_rotated ]
     restart: unless-stopped
-    ports:
-      - "${PORT}:${PORT}"
+    env_file: .env
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?schema=public
       - JWT_SECRET=${JWT_SECRET}
       - JWT_EXPIRES_IN=${JWT_EXPIRES_IN}
-      - PORT=${PORT}
+      - PORT=${PORT:-3000}
+    networks: [ backend ]
     depends_on:
-      postgres:
+      db:
         condition: service_healthy
-    volumes:
-      - ./backend:/usr/src/app
-      - /usr/src/app/node_modules
+    user: "1000:1000"
+    cpus: "1.00"
+    mem_limit: "768m"
+    tmpfs: 
+      - /tmp
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:${PORT:-3000}/health || exit 1"]
+      interval: 20s
+      timeout: 3s
+      retries: 5
+      start_period: 20s
 
-  studio:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: pedbox-prisma-studio
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: pedbox-tunnel
+    <<: [ *security_hardening, *logging_rotated ]
     restart: unless-stopped
-    ports:
-      - "51212:51212"
-    environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
+    networks: [ backend ]
     depends_on:
-      postgres:
-        condition: service_healthy
-    volumes:
-      - ./backend:/usr/src/app
-      - /usr/src/app/node_modules
-    command: pnpm prisma studio --port 51212 --browser none
-
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: pedbox-frontend
-    restart: unless-stopped
-    ports:
-      - "5173:5173"
-    environment:
-      - VITE_API_URL=http://localhost:${PORT}/api
-    depends_on:
-      - backend
-    volumes:
-      - ./frontend:/usr/src/app
-      - /usr/src/app/node_modules
-
-volumes:
-  postgres_data:
+      backend:
+        condition: service_started
+    cpus: "0.30"
+    mem_limit: "128m"
+    command: ["tunnel", "--no-autoupdate", "--url", "http://backend:${PORT:-3000}"]
