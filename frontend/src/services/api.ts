@@ -1,7 +1,7 @@
 // src/services/api.ts
 import axios from "axios";
 
-const API_URL = import.meta.env.VITE_API_URL || "https://lawn-lawsuit-publish-later.trycloudflare.com/api";
+const API_URL = import.meta.env.VITE_API_URL || "https://posters-cooperation-tale-bronze.trycloudflare.com";
 
 const api = axios.create({
   baseURL: API_URL,
